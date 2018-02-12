@@ -111,17 +111,23 @@
 - (void)showToastMessage:(NSString *)toastMessage
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-        self.toastMessage = toastMessage;
-        self.isCurrentlyOnScreen = NO;
-        
-        [self stopDismissTimer];
-        
-        if (self.isDuringAnimation) {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kFTToastDefaultAnimationDuration * 2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        if (self.isCurrentlyOnScreen || self.isDuringAnimation) {
+            [self.toastView showToastMessage:toastMessage withStyle:self.indicatorStyle];
+            [self startDismissTimer];
+            
+        } else {
+            self.toastMessage = toastMessage;
+            self.isCurrentlyOnScreen = NO;
+            
+            [self stopDismissTimer];
+            
+            if (self.isDuringAnimation) {
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kFTToastDefaultAnimationDuration * 2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    [self adjustIndicatorFrame];
+                });
+            }else{
                 [self adjustIndicatorFrame];
-            });
-        }else{
-            [self adjustIndicatorFrame];
+            }
         }
     });
 }
